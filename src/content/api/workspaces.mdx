@@ -1,0 +1,29 @@
+---
+title: Workspaces
+description: List the workspaces you belong to.
+sidebar:
+  order: 3
+---
+
+Reading and writing a specific workspace's data (logs, tags, tasks, attachments, templates) is covered in [Logs](/api/logs) and [Workspace Data](/api/workspace-data). This page is just the one route for discovering *which* workspaces you're in.
+
+Creating a shared workspace, renaming one, or changing its members is an admin-only action — see [Admin → Workspaces](/api/admin#workspaces).
+
+## `GET /api/workspaces`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Signed in" variant="default" size="medium" />
+
+Every workspace the signed-in user is a member of: their own Personal workspace, plus any shared workspace an admin has added them to. This is the same list returned by [`GET /api/auth/me`](/api/auth#get-apiauthme).
+
+**Response**
+
+```json
+{
+  "workspaces": [
+    { "id": "...", "slug": "personal-demo", "name": "Personal", "color": "bg-blue-500", "icon": "gallery", "kind": "personal", "templateMode": "today_only", "role": "owner" },
+    { "id": "...", "slug": "platform-team", "name": "Platform Team", "color": "bg-violet-500", "icon": "server", "kind": "shared", "templateMode": "today_only", "role": "member" }
+  ]
+}
+```
+
+`role` is `owner` for the workspace's creator, `member` for everyone else added to it. A Personal workspace always has exactly one member and can't take more.

@@ -2,37 +2,39 @@
 title: Logs
 description: List, create, edit, and move logs on the daily board.
 sidebar:
-  order: 2
+  order: 4
 ---
 
-See [Canvas and Masonry](/features/canvas-and-masonry) for how logs are arranged on a board.
+See [Canvas and Masonry](/features/canvas-and-masonry) for how logs are arranged on a board, and the [Markdown Editor](/features/markdown-editor) for what the `body` field can contain.
+
+Every route on this page is under `/api/workspaces/:workspaceId/logs` and requires **Workspace Member**.
 
 ## `GET /api/workspaces/:workspaceId/logs`
 
 <Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
 
-Fetches a paginated list of logs for a workspace.
+Lists logs for a workspace. See [Conventions](/api/overview#conventions) for how `day` changes pagination.
 
 **Query Parameters**
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `day` | string | No | Filter by a specific day (YYYY-MM-DD) |
-| `from` | string | No | Filter logs created after this date |
-| `to` | string | No | Filter logs created before this date |
-| `tag` | string | No | Filter by tag name |
-| `page` | string | No | Page number for pagination |
+| `day` | string | No | Only logs on this date (`YYYY-MM-DD`) — unpaginated, capped at 100 |
+| `from` | string | No | Only logs on or after this date |
+| `to` | string | No | Only logs on or before this date |
+| `tag` | string | No | Only logs carrying this tag |
+| `page` | number | No | Page number, used when `day` is omitted |
 
 **Response**
 
 ```json
 {
   "logs": [
-    { "id": "01HXYZ...", "day": "2026-09-06", "title": "Meeting notes", "body": "...", "createdAt": "...", "updatedAt": "..." }
+    { "id": "01HXYZ...", "workspaceId": "...", "authorId": "...", "day": "2026-09-06", "title": "Meeting notes", "body": "...", "createdAt": "...", "updatedAt": "...", "posX": 24, "posY": 24, "width": null, "height": null, "zIndex": 0, "authorName": "Demo", "tags": ["postgres"] }
   ],
   "hasMore": false,
   "page": 1,
-  "limit": 50
+  "limit": 10
 }
 ```
 
@@ -40,58 +42,116 @@ Fetches a paginated list of logs for a workspace.
 
 <Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
 
-Creates a new log on a specific day.
+Creates a log. `day` is set once here and never changes afterward — that's what keeps a log's mirrored file in one place forever.
 
 **Request body**
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `day` | string | Yes | The date to attach the log to (YYYY-MM-DD) |
-| `body` | string | Yes | Markdown content of the log |
-| `title` | string | No | Optional title |
-| `posX` | number | No | Canvas X coordinate |
-| `posY` | number | No | Canvas Y coordinate |
-| `width` | number | No | Canvas width |
-| `height` | number | No | Canvas height |
-| `zIndex` | number | No | Canvas Z-index |
+| `day` | string | Yes | `YYYY-MM-DD` |
+| `body` | string | Yes | Markdown, up to 2,000,000 characters |
+| `title` | string \| null | No | |
+| `posX` | integer | No | Canvas X coordinate |
+| `posY` | integer | No | Canvas Y coordinate |
 
-**Response:** `200` with `{ "log": LogSummary }`
+**Response:** `201` with the log itself (not wrapped) — the author, workspace, parsed `tags`, and parsed `tasks` are included, same shape as [`GET /:logId`](#get-apiworkspacesworkspaceidlogslogid) below.
 
-## `PUT /api/workspaces/:workspaceId/logs/:logId`
+## `GET /api/workspaces/:workspaceId/logs/:logId`
 
-<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
 
-Updates a log's content.
+**Response**
 
-**Request body** — all fields optional:
+```json
+{
+  "id": "...", "workspaceId": "...", "authorId": "...", "day": "2026-09-06", "title": "...", "body": "...",
+  "createdAt": "...", "updatedAt": "...", "posX": 24, "posY": 24, "width": null, "height": null, "zIndex": 0,
+  "author": { "id": "...", "name": "Demo" },
+  "workspace": { "id": "...", "slug": "personal-demo", "name": "Personal" },
+  "tags": ["postgres", "perf"],
+  "tasks": [{ "id": "...", "logId": "...", "text": "Ship the release notes", "done": false, "dueDate": "2026-09-07", "lineNo": 1, "completedAt": null }]
+}
+```
+
+## `PATCH /api/workspaces/:workspaceId/logs/:logId`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Updates a log's content. Re-parses tags and tasks from the new `body` on save.
+
+**Request body** — both optional:
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `title` | string | |
+| `title` | string \| null | |
 | `body` | string | |
 
-**Response:** `{ "log": LogSummary }`
+**Response:** the updated log, same shape as `GET /:logId`.
 
 ## `PATCH /api/workspaces/:workspaceId/logs/:logId/position`
 
 <Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
 
-Updates the spatial position of a log on the infinite canvas.
+Moves a log on the infinite canvas. This is board-arrangement state, not content — it skips the markdown mirror and `updatedAt` entirely, so dragging a card never rewrites its file.
 
 **Request body**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `posX` | number | Yes | |
-| `posY` | number | Yes | |
-| `zIndex` | number | No | |
+| Field | Type | Required |
+| --- | --- | --- |
+| `posX` | integer | Yes |
+| `posY` | integer | Yes |
 
 **Response:** `{ "ok": true }`
+
+## `PATCH /api/workspaces/:workspaceId/logs/:logId/size`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Resizes a log's card on the canvas. Same board-arrangement treatment as position — no mirror write.
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `width` | integer | Yes |
+| `height` | integer | Yes |
+
+**Response:** `{ "ok": true }`
+
+## `PATCH /api/workspaces/:workspaceId/logs/:logId/zindex`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Brings a log to front (or sends it back) on the canvas. Same board-arrangement treatment — no mirror write.
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `zIndex` | integer | Yes |
+
+**Response:** `{ "ok": true }`
+
+## `POST /api/workspaces/:workspaceId/logs/:logId/duplicate`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Copies a log onto the same day, offset 24px down and right, stacked above the original.
+
+**Response:** `201` with the new log, same shape as `GET /:logId`.
+
+## `POST /api/workspaces/:workspaceId/logs/:logId/move/:targetWorkspaceId`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Moves a log (and its attachments) to a different workspace, keeping its day and content. Requires membership in **both** `:workspaceId` and `:targetWorkspaceId` — checked separately, since they're two different workspaces.
+
+**Response:** the log, now pointing at the target workspace.
 
 ## `DELETE /api/workspaces/:workspaceId/logs/:logId`
 
 <Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Workspace Member" variant="danger" size="medium" />
 
-Soft-deletes a log (sets `deleted_at`).
+Soft-deletes a log (sets `deletedAt`) and removes its markdown mirror file.
 
 **Response:** `{ "ok": true }`

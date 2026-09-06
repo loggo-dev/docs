@@ -1,0 +1,22 @@
+---
+title: Admin
+description: Managing users, workspaces, and instance settings.
+sidebar:
+  order: 9
+---
+
+Admins get three extra sections under `/settings`, hidden from regular users. See [the Admin API](/api/admin) for the endpoints these pages call.
+
+## Users
+
+`/settings/users` — create accounts, disable them, change role (`admin`/`user`), reset a password. There's no public sign-up: **admin invites only**. The first admin account is created once, at `/setup`, the first time the instance starts with no users at all.
+
+Disabling a user blocks login without deleting their data — their Personal workspace and logs stay put, and can be reassigned or read via [`loggo rebuild`](/features/portability) if needed later. Deleting a user is permanent and cascades: it removes every workspace they created, including shared ones other people are members of.
+
+## Workspaces
+
+`/settings/workspaces` — create shared workspaces, rename them, change their color/icon, and manage who's a member. Members are set as a full list each time (see [`PUT /admin/workspaces/:workspaceId/members`](/api/admin#workspaces)), not added/removed one at a time.
+
+## Instance Settings
+
+`/settings/instance` — storage backend, mirror path, max attachment size, and allowed file types, stored as flat key-value settings. Max attachment size and allowed file types override their equivalent environment variables at runtime; storage backend and mirror path are recorded here but the actual backend is still chosen by server config at boot. See [Instance Settings](/api/admin#instance-settings) for the full breakdown.

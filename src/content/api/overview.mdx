@@ -5,32 +5,41 @@ sidebar:
   order: 1
 ---
 
-This is the same HTTP API Loggo's own web UI calls — there's no separate public API surface. It's useful for scripting against a self-hosted instance (bulk importing markdown, automating log creation), but it's **internal and unversioned**: no API keys, no stability guarantee across releases, and every route lives under the app's own origin (`http://localhost:3000` by default).
+This is the same HTTP API Loggo's own web UI calls — there's no separate public API surface. It's useful for scripting against a self-hosted instance (bulk importing markdown, automating log creation), but it's **internal and unversioned**: no API keys, no stability guarantee across releases, and every route lives under the app's own origin (`http://localhost:3000` by default), mounted under `/api`.
 
 ## Authentication
 
-There's no bearer token — identity comes from which **user** is active in the browser, tracked by the `loggo_session` cookie.
+There's no bearer token — identity comes from which **user** is active in the browser, tracked by the `loggo_session` cookie (httpOnly, session row in SQLite).
 
-<Badge text="POST" variant="info" size="medium" /> **`/api/auth/login`** sets that cookie: pass an `email` and `password`. Every other endpoint reads the user from the cookie already on the request — script against this API with a cookie jar, the same way a browser session would.
+<Badge text="POST" variant="info" size="medium" /> **`/api/auth/login`** sets that cookie: pass an `email` and `password`. Every other endpoint reads the user from the cookie already on the request — script against this API with a cookie jar, the same way a browser session would. See [Auth](/api/auth) for login, logout, `/auth/me`, and first-run `/setup`.
 
-Two permission levels apply, checked server-side on every request that needs them:
+Three permission levels apply, checked server-side on every request that needs them:
 
 | Level | Applies to |
 | --- | --- |
-| Workspace Member | Reading, creating, editing, and deleting logs, tasks, tags, attachments, and templates within a specific workspace. |
-| Admin only | Creating/deleting workspaces, managing users, updating global instance settings, assigning users to workspaces. |
+| Signed in | `/api/profile`, `/api/workspaces`, `/api/auth/me`. Any authenticated user. |
+| Workspace Member | Everything under `/api/workspaces/:workspaceId/*` — logs, tags, tasks, search, attachments, templates. Checked once, in middleware, before the route handler runs. |
+| Admin only | Everything under `/api/admin/*` — creating/deleting workspaces, managing users, updating instance settings. |
 
 ## Conventions
 
-- All request and response bodies are JSON, except file uploads (`multipart/form-data`) and file downloads (raw bytes).
-- A failed request returns a JSON body shaped `{ "error": { "message": "..." } }` with a 4xx or 5xx status — there's no separate error-code field to switch on.
-- IDs are opaque strings — mostly ULIDs sorted by time.
+- All request and response bodies are JSON, except file uploads (`multipart/form-data`, [Attachments](/api/workspace-data#attachments)) and file downloads (raw bytes, the attachment `/file` route).
+- A failed request returns a JSON body shaped `{ "error": { "code": "...", "message": "..." } }` with a matching status: `VALIDATION` → 400, `UNAUTHORIZED` → 401, `FORBIDDEN` → 403, `NOT_FOUND` → 404, `CONFLICT` → 409. Anything unhandled is `INTERNAL` → 500.
+- IDs are opaque strings — [ULIDs](https://github.com/ulid/spec), which sort by creation time.
+- **Endpoints that create a resource return the resource itself**, not wrapped in an envelope — `POST /logs` returns the log directly, not `{ "log": ... }`. Endpoints that only perform an action return `{ "ok": true }` (two template endpoints return `{ "success": true }` instead — noted where it applies).
+- **List endpoints paginate.** Pass `day` (or `board`, for tasks) to fetch everything for that one day unpaginated (capped at 100 rows) — this is what the day board itself uses. Without it, results page using the instance's `defaultPageSize` setting (10 by default): pass `page` (1-indexed), and read `hasMore`/`limit` off the response to know whether to fetch the next page.
+- On the read-only Cloudflare demo, every non-`GET` request under `/api/profile`, `/api/workspaces/:workspaceId/*`, and `/api/admin/*` is rejected with `403 FORBIDDEN` — enforced by one middleware, not hidden in the UI.
 
 ## Endpoints by resource
 
 | Resource | Page |
 | --- | --- |
-| Auth & Me — login, logout, profile update | [Auth](/api/auth) |
-| Workspaces — create, edit, delete, members | [Workspaces](/api/workspaces) |
-| Logs — add, read, update, reposition on canvas | [Logs](/api/logs) |
-| Tags, Tasks, Attachments, Templates | [Workspace Data](/api/workspace-data) |
+| Setup, Login, Logout, Me | [Auth](/api/auth) |
+| Workspaces — the ones you belong to | [Workspaces](/api/workspaces) |
+| Logs — add, read, update, position/size/z-index, duplicate, move | [Logs](/api/logs) |
+| Tags, Tasks, Search, Attachments, Templates | [Workspace Data](/api/workspace-data) |
+| Users, Workspaces, Instance Settings (admin only) | [Admin](/api/admin) |
+
+## Internal
+
+<Badge text="POST" variant="info" size="medium" /> **`/api/internal/reseed-demo`** exists purely so the Cloudflare demo's daily Cron Trigger can wipe and reseed itself with fresh dates (see [Deploy to Cloudflare](/deployment/cloudflare)). It's guarded by an `x-reseed-secret` header matched against the `RESEED_SECRET` server env var, and 404s outright on any install that hasn't set one — which is every self-hosted install. Not part of the API surface described above; nothing outside that one Cron Trigger should ever call it.

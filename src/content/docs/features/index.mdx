@@ -9,12 +9,24 @@ Loggo is a highly specialized self-hosted note app tailored for engineers and th
 
 ## A Day is a Board
 
-Instead of endless scrolling feeds or nested folder structures, Loggo organizes your life by day. Every day gives you a fresh, infinite 2D canvas. You drop "Logs" onto it anywhere you want.
+Instead of endless scrolling feeds or nested folder structures, Loggo organizes your life by day. Every day gives you a fresh, infinite 2D canvas. You drop "Logs" onto it anywhere you want. See [Canvas and Masonry](/features/canvas-and-masonry) for the two ways to view a day.
 
 ## Plain Markdown with Frontmatter
 
-Every Log you create is seamlessly mirrored to the filesystem as a standard `.md` file, complete with YAML frontmatter. This guarantees your data is always portable, readable, and under your absolute control.
+Every Log you create is seamlessly mirrored to the filesystem as a standard `.md` file, complete with YAML frontmatter. This guarantees your data is always portable, readable, and under your absolute control. See [Portability and Rebuild](/features/portability) for how that mirror doubles as a real backup.
 
 ## Blazing Fast FTS5
 
-Loggo embeds a SQLite database leveraging FTS5 and the `unicode61` tokenizer. Finding a single keyword across thousands of your historical logs takes just milliseconds.
+Loggo embeds a SQLite database leveraging FTS5 and the `unicode61` tokenizer. Finding a single keyword across thousands of your historical logs takes just milliseconds. See [Search](/features/search) for the Cmd+K palette this powers.
+
+## Everything else
+
+| Feature | What it does |
+| --- | --- |
+| [Markdown Editor](/features/markdown-editor) | CodeMirror 6 with Obsidian-style live preview, syntax-highlighted code blocks, paste-to-upload images |
+| [Tags](/features/tags) | Inline `#tag` (and `#nested/tag`) parsed out of a Log's body automatically |
+| [Tasks](/features/tasks) | `- [ ]` checkboxes parsed into real records, with `!friday`-style due dates |
+| [Attachments](/features/attachments) | Images and files attached to a Log, stored locally, on S3, or on R2 |
+| [Workspaces](/features/workspaces) | A private Personal space plus shared team workspaces, each with its own color and icon |
+| [Daily Templates](/features/templates) | Logs a workspace generates automatically for today, or for any day you open |
+| [Admin](/features/admin) | Managing users, workspaces, and instance-wide settings |

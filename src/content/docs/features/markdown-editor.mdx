@@ -1,0 +1,20 @@
+---
+title: Markdown Editor
+description: The CodeMirror-based editor every Log is written in.
+sidebar:
+  order: 2
+---
+
+Every Log is edited in [CodeMirror 6](https://codemirror.net/), Obsidian-style: you're always editing real markdown text, but common syntax renders as you type instead of staying as raw characters.
+
+## Live preview
+
+Headings render large, links render as links, and fenced code blocks get language-aware syntax highlighting inline, while the cursor stays in a normal text-editing position — there's no separate "preview mode" to switch into.
+
+## Paste to attach
+
+Paste an image straight from the clipboard and it uploads through [the attachments API](/api/workspace-data#attachments) and inserts a relative markdown link (`![](./_files/...)`) at the cursor. See [Attachments](/features/attachments) for where the file actually goes.
+
+## Slash commands
+
+Typing `/` opens a searchable menu for inserting markdown without typing the syntax by hand: task checkboxes, headings (H1–H3), bullet and numbered lists, blockquotes, code blocks, tables, dividers, bold/italic/strikethrough/inline code, links, and the current date or time.

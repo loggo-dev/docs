@@ -1,0 +1,20 @@
+---
+title: Search
+description: The Cmd+K palette and the FTS5 index behind it.
+sidebar:
+  order: 6
+---
+
+Press <kbd>Cmd</kbd>+<kbd>K</kbd> (or click the sidebar's search button) anywhere in the app to open the command palette.
+
+## Search mode
+
+Type text to search across logs, tags, and tasks in the current workspace, ranked with SQLite's `bm25` and grouped by result type in the palette. Log matches come back with a highlighted snippet around the match. See [`GET /api/workspaces/:workspaceId/search`](/api/workspace-data#search) for the endpoint.
+
+## Command mode
+
+Type `>` to switch the same dialog into an actions list: create a new log, jump to today, or toggle light/dark theme.
+
+## Why it's fast
+
+The index is a SQLite FTS5 virtual table using the `unicode61` tokenizer (not the default `ascii` one, which mishandles anything outside plain English), kept in sync with `logs` by triggers. Full-text search across years of logs stays sub-millisecond because it's a local index, not a network round trip.

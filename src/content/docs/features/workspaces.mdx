@@ -1,0 +1,26 @@
+---
+title: Workspaces
+description: Personal vs. shared workspaces, and switching between them.
+sidebar:
+  order: 7
+---
+
+Every Log belongs to exactly one workspace. A workspace is either:
+
+- **Personal** — created automatically for every user, exactly one member, nobody else can join it. This is where your own day-to-day logs live.
+- **Shared** — created by an admin, with whatever members they choose (see [Admin → Workspaces](/features/admin#workspaces)). Everyone in it sees all of its logs.
+
+## Switching workspaces
+
+The sidebar header is a workspace switcher listing your Personal workspace plus every shared one you've been added to. Switching workspaces changes which day board, logs, tags, tasks, and attachments you're looking at — each workspace's data is completely separate.
+
+## Appearance
+
+Each workspace has a color and an icon, set by an admin, shown in the switcher and throughout the UI:
+
+- **Colors** — eight options: blue, fuchsia, emerald, amber, rose, cyan, violet, orange (`bg-<color>-500`). Users get the same eight colors for their own avatar/initials.
+- **Icons** — twenty options covering common workspace shapes: gallery, users, briefcase, building, rocket, code, terminal, database, server, cloud, package, folder, notebook, book, box, lightbulb, target, sparkles, palette, globe.
+
+## Moving a Log between workspaces
+
+A log can be moved to a different workspace you're also a member of without losing its day or content — see [`POST /logs/:logId/move/:targetWorkspaceId`](/api/logs#post-apiworkspacesworkspaceidlogslogidmovetargetworkspaceid). Its attachments move with it.

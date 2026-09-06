@@ -1,0 +1,16 @@
+---
+title: Tags
+description: Inline #tags, parsed automatically from a Log's body.
+sidebar:
+  order: 3
+---
+
+Write `#postgres` anywhere in a Log's body and it becomes a real tag — no separate tagging step. Nested tags like `#infra/postgres` are allowed too.
+
+## What doesn't count as a tag
+
+The parser skips fenced code blocks and inline code entirely, so `#include <stdio.h>` in a code sample never becomes a tag. It also ignores anything that looks like a hex color (`#fff`, `#3b82f6`) so pasted CSS or design notes don't spam your tag list.
+
+## The Tags page
+
+`/tags` lists every tag in the current workspace with how many logs carry it, sorted by count. Click one to see every log tagged with it (`/tags/:name`). See [`GET /api/workspaces/:workspaceId/tags`](/api/workspace-data#tags) for the underlying endpoint.

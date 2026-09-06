@@ -1,0 +1,29 @@
+---
+title: Tasks
+description: Checkbox tasks parsed out of a Log, with due dates.
+sidebar:
+  order: 4
+---
+
+Write `- [ ] some task` in any Log and it becomes a real task record, tracked separately from the log's text. Check `- [x]` and it's marked done.
+
+## Due dates
+
+Add a `!` token at the end of the line to give a task a due date:
+
+```md
+- [ ] Ship the release notes !tomorrow
+- [ ] Reply to the customer thread !today
+- [ ] Renew the TLS cert !2026-09-12
+- [ ] Follow up with the vendor !friday
+```
+
+`!today` and `!tomorrow` resolve relative to the log's own day (not necessarily today's real date, if you're writing into an older log). A weekday name resolves to the next occurrence of that weekday.
+
+## The file is the source of truth
+
+Ticking a checkbox anywhere in the app — the day board, the Tasks page — rewrites that exact line in the log's markdown body. There's no separate tasks table that can drift from what the log actually says; that's why every task tracks which line number it came from, and why editing a log's text underneath a task can make the tick briefly fail (see [`PATCH /tasks/:taskId`](/api/workspace-data#tasks)).
+
+## The Tasks page
+
+`/tasks` lists every task in the workspace, filterable by pending/completed and by date range.

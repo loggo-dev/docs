@@ -1,0 +1,233 @@
+---
+title: Workspace Data
+description: Tags, tasks, search, attachments, and templates.
+sidebar:
+  order: 5
+---
+
+Everything on this page is under `/api/workspaces/:workspaceId/...` and requires **Workspace Member**. See [Conventions](/api/overview#conventions) for the shared pagination rule these list endpoints follow.
+
+## Tags
+
+See [Tags](/features/tags) for how `#tag` is parsed out of a log's markdown.
+
+### `GET /api/workspaces/:workspaceId/tags`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Every tag in the workspace, with how many (non-deleted) logs carry it — sorted by count, then name.
+
+**Query Parameters**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `from` | string | No | Only count logs on or after this date |
+| `to` | string | No | Only count logs on or before this date |
+| `page` | number | No | Page number |
+
+**Response**
+
+```json
+{ "tags": [{ "id": "...", "name": "postgres", "count": 3 }], "hasMore": false, "page": 1, "limit": 10 }
+```
+
+## Tasks
+
+See [Tasks](/features/tasks) for the `- [ ]` and due-date syntax that produces these.
+
+### `GET /api/workspaces/:workspaceId/tasks`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+**Query Parameters**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `day` | string | No | Only tasks written into this day's logs — unpaginated |
+| `board` | string | No | What the day board shows for this date: undated tasks written that day, plus any task (from any day) due on it — unpaginated |
+| `from` | string | No | Only logs on or after this date |
+| `to` | string | No | Only logs on or before this date |
+| `status` | `pending` \| `completed` | No | Filter by completion |
+| `page` | number | No | Page number, used when neither `day` nor `board` is set |
+
+**Response**
+
+```json
+{
+  "tasks": [{ "id": "...", "logId": "...", "text": "Ship the release notes", "done": false, "dueDate": "2026-09-07", "lineNo": 1, "completedAt": null, "logTitle": "Standup notes", "day": "2026-09-06" }],
+  "hasMore": false, "page": 1, "limit": 10
+}
+```
+
+### `PATCH /api/workspaces/:workspaceId/tasks/:taskId`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Ticks or unticks a task. This rewrites the `- [ ]`/`- [x]` line in the log's actual markdown `body` — the file is the source of truth, which is why every task tracks `lineNo`. Fails with `409 CONFLICT` if that line no longer looks like a task (the log was edited since the task was parsed).
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `done` | boolean | Yes |
+
+**Response:** `{ "log": {...} }` — the whole updated log, same shape as [`GET /logs/:logId`](/api/logs#get-apiworkspacesworkspaceidlogslogid).
+
+## Search
+
+See [Search](/features/search) for the Cmd+K palette this backs.
+
+### `GET /api/workspaces/:workspaceId/search`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Full-text search across logs (SQLite FTS5, `unicode61` tokenizer, ranked with `bm25`), plus a plain `LIKE` match against tag names and task text. Not paginated — capped at 24 combined results.
+
+**Query Parameters**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `q` | string | Yes | Up to 500 characters. Empty string returns `[]` |
+
+**Response**
+
+```json
+{
+  "results": [
+    { "type": "log", "id": "...", "title": "Postgres tuning notes", "snippet": "Bumped <mark>work_mem</mark> and re-ran…", "day": "2026-09-05" },
+    { "type": "tag", "id": "...", "title": "#postgres", "snippet": "", "day": null },
+    { "type": "task", "id": "...", "title": "Ship the release notes", "snippet": "Standup notes", "day": "2026-09-06" }
+  ]
+}
+```
+
+## Attachments
+
+See [Attachments](/features/attachments) for paste-to-upload and storage backends.
+
+### `GET /api/workspaces/:workspaceId/attachments`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+**Query Parameters**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `from` | string | No | Only attachments on logs on or after this date |
+| `to` | string | No | Only attachments on logs on or before this date |
+| `extension` | string | No | Filter by file extension, e.g. `png` |
+| `page` | number | No | Page number |
+
+**Response**
+
+```json
+{
+  "attachments": [{ "id": "...", "logId": "...", "workspaceId": "...", "filename": "01JB...-screenshot.png", "mime": "image/png", "size": 48213, "storageKey": "workspaces/personal-demo/2026/09/06/_files/01JB...-screenshot.png", "createdAt": "...", "logTitle": "Deploy notes", "day": "2026-09-06" }],
+  "hasMore": false, "page": 1, "limit": 10
+}
+```
+
+### `GET /api/workspaces/:workspaceId/attachments/extensions`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Every distinct file extension in the workspace, for populating a filter dropdown.
+
+**Response:** `{ "extensions": ["jpg", "pdf", "png"] }`
+
+### `POST /api/workspaces/:workspaceId/attachments`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Uploads a file and attaches it to a log. `multipart/form-data`, not JSON.
+
+**Form fields**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `file` | file | Yes | Rejected with `400` if missing, `503` if the instance has no storage backend configured |
+| `logId` | string | Yes | The log to attach it to |
+
+Rejected with `400 VALIDATION` if the file exceeds the instance's `maxAttachmentSize` or its MIME type isn't in `allowedFileTypes` (see [Admin → Instance Settings](/api/admin#instance-settings)).
+
+**Response:** `201` with `{ "id": "...", "filename": "01JB...-screenshot.png", "relativeLink": "./_files/01JB...-screenshot.png", "mime": "image/png", "size": 48213 }`. Paste `relativeLink` into the log's markdown body (`![alt](./_files/...)` for an image) to have it render inline — that's what the editor's paste handler does automatically.
+
+### `GET /api/workspaces/:workspaceId/attachments/:attachmentId/file`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Streams the raw file bytes with its original `content-type` and an inline `content-disposition`. `404` if storage is off or the object is missing.
+
+### `DELETE /api/workspaces/:workspaceId/attachments/:attachmentId`
+
+<Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Workspace Member" variant="danger" size="medium" />
+
+Deletes the stored file and its database row. Doesn't touch the `![...]` link left behind in the log's body — remove that separately if you don't want a broken reference.
+
+**Response:** `{ "ok": true }`
+
+## Templates
+
+See [Daily Templates](/features/templates) for `today_only` vs. `any_visited_day`.
+
+### `GET /api/workspaces/:workspaceId/templates`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+**Response:** `{ "templates": [{ "id": "...", "workspaceId": "...", "title": "Standup", "body": "...", "enabled": true, "createdAt": "..." }] }`
+
+### `POST /api/workspaces/:workspaceId/templates`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `body` | string | Yes | Markdown — becomes a new log's `body` each time the template applies |
+| `title` | string \| null | No | |
+| `enabled` | boolean | No | Defaults to `true` |
+
+**Response:** `{ "template": {...} }`
+
+### `PUT /api/workspaces/:workspaceId/templates/:id`
+
+<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+**Request body** — all optional: `title`, `body`, `enabled`.
+
+**Response:** `{ "template": {...} }`
+
+### `DELETE /api/workspaces/:workspaceId/templates/:id`
+
+<Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Workspace Member" variant="danger" size="medium" />
+
+**Response:** `{ "success": true }` — this endpoint and `PUT /templates/mode` below use `success` rather than the `ok` key every other mutation in this API uses.
+
+### `PUT /api/workspaces/:workspaceId/templates/mode`
+
+<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Sets whether templates apply only to today, or to any day the board is opened for.
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `mode` | `today_only` \| `any_visited_day` | Yes |
+
+**Response:** `{ "success": true }`
+
+### `POST /api/workspaces/:workspaceId/templates/apply`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Applies every enabled template to a day, creating one new log per template — but only once per `(workspace, day)` pair, and only if `today_only` mode's date check passes. The day board calls this itself every time you open a day, so you'll rarely need to call it directly.
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `day` | string | Yes |
+
+**Response:** `{ "applied": true }` if templates were generated (or there were none enabled to generate), `{ "applied": false }` if this day was already applied, or if `today_only` mode and `day` isn't today.

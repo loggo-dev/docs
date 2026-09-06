@@ -1,0 +1,30 @@
+---
+title: Attachments
+description: Images and files attached to a Log.
+sidebar:
+  order: 5
+---
+
+Paste an image into the [editor](/features/markdown-editor) or upload one through the API and it's stored next to that day's markdown mirror, then referenced from the log body as a relative link: `![screenshot](./_files/01JB...-screenshot.png)`.
+
+## Storage backends
+
+Where the actual bytes live depends on how the instance is configured:
+
+- **Local filesystem** — the default for the Docker deployment, alongside the SQLite database and markdown mirror.
+- **S3-compatible** — any S3-compatible provider, via `S3_*` environment variables.
+- **R2** — used by the Cloudflare Workers demo.
+
+The app code never knows which one it's talking to; every backend implements the same `put`/`get`/`delete`/`list` interface.
+
+## Limits
+
+An instance-wide max file size and an allowed-MIME-type list gate every upload — configured via `MAX_ATTACHMENT_SIZE`/`ALLOWED_FILE_TYPES` env vars, or overridden per-instance from [Admin → Instance Settings](/features/admin#instance-settings). A file that's too large or the wrong type is rejected before it touches storage.
+
+## The Attachments page
+
+`/attachments` lists every file in the workspace, filterable by date range and extension.
+
+<Aside type="caution" title="Deleting doesn't clean up the link">
+  Deleting an attachment removes the stored file, but not the `![...]` reference left behind in whichever log's body pointed at it.
+</Aside>

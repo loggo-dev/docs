@@ -1,0 +1,158 @@
+---
+title: Admin
+description: Users, workspaces, and instance settings — admin only.
+sidebar:
+  order: 6
+---
+
+Every route on this page is under `/api/admin/*` and requires the signed-in user's `role` to be `admin`. See [Admin](/features/admin) for the settings page these back.
+
+## Users
+
+### `GET /api/admin/users`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+**Response:** `{ "users": [{ "id": "...", "email": "...", "name": "...", "color": "bg-blue-500", "role": "user", "disabledAt": null, "createdAt": "..." }] }`
+
+### `POST /api/admin/users`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Creates a user and their Personal workspace. There's no public sign-up — this is the only way a new account gets created after `/setup`.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | string | Yes | 1–80 characters |
+| `email` | string | Yes | Fails with `409 CONFLICT` if already in use |
+| `password` | string | Yes | 8–200 characters |
+| `role` | `admin` \| `user` | Yes | |
+| `color` | string | No | One of the eight [user colors](/features/workspaces#appearance); auto-assigned if omitted |
+
+**Response:** `201` with the new user (not wrapped): `{ "id": "...", "email": "...", "name": "...", "color": "...", "role": "user" }`.
+
+### `PATCH /api/admin/users/:userId`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+**Request body** — all optional:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | string | |
+| `password` | string | |
+| `role` | `admin` \| `user` | |
+| `color` | string | |
+| `disabled` | boolean | `true` sets `disabledAt` to now and blocks login; `false` clears it |
+
+**Response:** `{ "ok": true }`
+
+### `DELETE /api/admin/users/:userId`
+
+<Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Admin" variant="danger" size="medium" />
+
+Deletes the user and, since a workspace's `createdBy` cascades, every workspace they created — including shared ones other people are members of, and all logs, tags, tasks, and attachments in those workspaces. There's no confirmation at the API layer; the UI is what asks twice.
+
+**Response:** `{ "ok": true }`
+
+## Workspaces
+
+### `GET /api/admin/workspaces`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Every workspace on the instance, with its member list — unlike [`GET /api/workspaces`](/api/workspaces), which only returns the signed-in user's own.
+
+**Response**
+
+```json
+{
+  "workspaces": [
+    { "workspace": { "id": "...", "slug": "platform-team", "name": "Platform Team", "color": "bg-violet-500", "icon": "server", "kind": "shared", "templateMode": "today_only", "createdBy": "...", "createdAt": "..." }, "members": [{ "userId": "...", "role": "owner" }, { "userId": "...", "role": "member" }] }
+  ]
+}
+```
+
+### `POST /api/admin/workspaces`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Creates a shared workspace. Personal workspaces are never created through this route — they're created automatically alongside a user.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | string | Yes | 1–80 characters |
+| `color` | string | No | One of the [workspace colors](/features/workspaces#appearance) |
+| `icon` | string | No | One of the [workspace icons](/features/workspaces#appearance) |
+| `memberIds` | string[] | No | Additional members beyond the admin creating it |
+
+**Response:** `201` with the new workspace (not wrapped).
+
+### `PATCH /api/admin/workspaces/:workspaceId`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Renames a workspace or changes its appearance.
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `name` | string | Yes |
+| `color` | string | Yes |
+| `icon` | string | Yes |
+
+**Response:** `{ "ok": true }`
+
+### `PUT /api/admin/workspaces/:workspaceId/members`
+
+<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Replaces the workspace's member list wholesale — this is a set, not a diff. Fails with `409 CONFLICT` on a Personal workspace, which can't take more than its one member.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `userIds` | string[] | Yes | The creator is always kept as `owner` even if omitted here |
+
+**Response:** `{ "ok": true }`
+
+### `DELETE /api/admin/workspaces/:workspaceId`
+
+<Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Admin" variant="danger" size="medium" />
+
+Deletes the workspace and, by cascade, every log, tag, task, and attachment in it, plus its files under the storage backend's `workspaces/<slug>/` prefix.
+
+**Response:** `{ "ok": true }`
+
+## Instance Settings
+
+A flat key-value store (`settings` table, both keys and values are strings) for instance-wide configuration. `GET`/`PUT` accept and return whatever keys are there — the API doesn't enforce a fixed shape.
+
+### `GET /api/admin/instance`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+**Response:** `{ "settings": { "defaultPageSize": "10", "maxAttachmentSize": "10485760", "allowedFileTypes": "image/png,image/jpeg,...", "storageBackend": "local", "mirrorPath": "" } }`
+
+### `PUT /api/admin/instance`
+
+<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Admin" variant="default" size="medium" />
+
+Upserts settings — keys not included in the body are left untouched.
+
+**Request body:** any `{ "key": "value" }` object (all values must be strings). The settings page in the UI writes these keys:
+
+| Key | Effect |
+| --- | --- |
+| `defaultPageSize` | Page size for every paginated list endpoint |
+| `maxAttachmentSize` | Overrides the `MAX_ATTACHMENT_SIZE` env var, in bytes |
+| `allowedFileTypes` | Overrides the `ALLOWED_FILE_TYPES` env var — comma-separated MIME types |
+| `storageBackend`, `mirrorPath` | Recorded for the UI to display; the active storage backend itself is still chosen by server config/env at boot, not switched live from this endpoint |
+
+**Response:** `{ "ok": true }`

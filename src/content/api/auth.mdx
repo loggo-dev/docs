@@ -1,0 +1,90 @@
+---
+title: Auth
+description: First-run setup, login, logout, and the current session.
+sidebar:
+  order: 2
+---
+
+## `GET /api/setup/status`
+
+<Badge text="GET" variant="info" size="medium" />
+
+Tells the frontend whether first-run setup still needs to happen. Used to decide whether to show `/setup` or `/login`.
+
+**Response**
+
+```json
+{ "needed": true }
+```
+
+## `POST /api/setup`
+
+<Badge text="POST" variant="success" size="medium" />
+
+Creates the first (and only ever, via this route) admin account, its Personal workspace, and signs them in. Fails with `409 CONFLICT` if any user already exists — this route only ever runs once per instance.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | string | Yes | 1–80 characters |
+| `email` | string | Yes | Must be a valid email |
+| `password` | string | Yes | 8–200 characters |
+
+**Response:** `201` with `{ "user": {...}, "workspace": {...} }`, and sets the `loggo_session` cookie.
+
+## `POST /api/auth/login`
+
+<Badge text="POST" variant="success" size="medium" />
+
+**Request body**
+
+| Field | Type | Required |
+| --- | --- | --- |
+| `email` | string | Yes |
+| `password` | string | Yes |
+
+Fails with `401 UNAUTHORIZED` for a wrong password, an unknown email, or a disabled user.
+
+**Response:** `{ "user": { "id": "...", "email": "...", "name": "...", "color": "...", "role": "admin" } }`, and sets the `loggo_session` cookie.
+
+## `POST /api/auth/logout`
+
+<Badge text="POST" variant="success" size="medium" />
+
+Deletes the session row and clears the cookie. Safe to call with no session.
+
+**Response:** `{ "ok": true }`
+
+## `GET /api/auth/me`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Signed in" variant="default" size="medium" />
+
+The current user plus every workspace they belong to — what the frontend calls on load to bootstrap the sidebar's workspace switcher.
+
+**Response**
+
+```json
+{
+  "user": { "id": "...", "email": "...", "name": "...", "color": "bg-blue-500", "role": "admin" },
+  "workspaces": [
+    { "id": "...", "slug": "personal-demo", "name": "Personal", "color": "bg-blue-500", "icon": "gallery", "kind": "personal", "templateMode": "today_only", "role": "owner" }
+  ]
+}
+```
+
+## `PATCH /api/profile`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Signed in" variant="default" size="medium" />
+
+Updates the signed-in user's own name, color, or password. There's no separate endpoint for this under `/auth` — it lives at the top level since it isn't workspace-scoped.
+
+**Request body** — all optional except `name`:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | string | Required, 1–80 characters |
+| `color` | string | One of the eight [user colors](/features/workspaces#appearance) |
+| `password` | string | 8–200 characters |
+
+**Response:** `{ "ok": true }`

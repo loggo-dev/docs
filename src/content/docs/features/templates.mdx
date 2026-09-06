@@ -1,0 +1,21 @@
+---
+title: Daily Templates
+description: Logs a workspace generates automatically when a day is opened.
+sidebar:
+  order: 8
+---
+
+A workspace can define templates — markdown snippets that get turned into real logs automatically, one new log per enabled template, so a recurring standup note or checklist doesn't have to be typed out every day.
+
+## When templates apply
+
+Every workspace has a template mode, set from `/settings/templates`:
+
+- **`today_only`** (default) — templates only generate logs for the actual current day. Opening an old day never backfills logs onto it.
+- **`any_visited_day`** — templates generate for whatever day you open the board on, the first time you open it. Useful for filling in a day retroactively.
+
+Either way, a given `(workspace, day)` pair only ever applies its templates once — reopening the same day doesn't create duplicates. This check runs automatically every time the day board loads; there's no manual "apply" button.
+
+## Enabling and disabling
+
+A template can be toggled off without deleting it — a disabled template is skipped when a day applies, but stays around to re-enable later.

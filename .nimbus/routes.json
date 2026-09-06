@@ -4,14 +4,27 @@
   "knownRoutes": [
     "/",
     "/404",
+    "/api/admin",
+    "/api/auth",
     "/api/logs",
     "/api/overview",
+    "/api/workspace-data",
+    "/api/workspaces",
     "/deployment",
     "/deployment/cloudflare",
     "/deployment/docker",
     "/deployment/kubernetes",
     "/features",
-    "/features/canvas-and-masonry"
+    "/features/admin",
+    "/features/attachments",
+    "/features/canvas-and-masonry",
+    "/features/markdown-editor",
+    "/features/portability",
+    "/features/search",
+    "/features/tags",
+    "/features/tasks",
+    "/features/templates",
+    "/features/workspaces"
   ],
   "opaqueNamespaces": []
 }

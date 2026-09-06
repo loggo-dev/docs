@@ -1,0 +1,56 @@
+---
+title: Portability and Rebuild
+description: The markdown mirror, and rebuilding the database from it.
+sidebar:
+  order: 10
+---
+
+SQLite is where Loggo actually reads and writes from, but it isn't the only copy of your data. Every Log is also mirrored to disk as a plain `.md` file with full YAML frontmatter:
+
+```
+data/workspaces/personal-demo/2026/09/06/01JBX7Q2K9V3-postgres-tuning.md
+data/workspaces/personal-demo/2026/09/06/_files/screenshot.png
+```
+
+```yaml
+---
+id: 01JBX7Q2K9V3
+title: Postgres tuning notes
+day: 2026-09-06
+created: 2026-09-06T10:12:00.000Z
+updated: 2026-09-06T11:40:00.000Z
+author: Demo
+workspace: personal-demo
+workspace_name: Personal
+workspace_color: bg-blue-500
+workspace_icon: gallery
+tags: ["postgres","perf"]
+pos_x: 24
+pos_y: 24
+---
+Bumped `work_mem` and re-ran the slow query report. #postgres #perf
+```
+
+`pos_x`, `pos_y`, `width`, `height`, and `z_index` are only written when set — a log that's never been dragged or resized on the canvas omits them.
+
+<Aside type="note" title="Loggo never runs git">
+  The mirror is just written to disk. Pointing that directory at a git repo and committing it — on a schedule, or by hand — is entirely up to you.
+</Aside>
+
+## Write ordering
+
+A save commits to SQLite first, inside a transaction — that commit is what makes the save real. The `.md` file is written afterward, outside the transaction. If that write fails (a full disk, a storage outage), the Log is **still saved**, just flagged `mirrorDirty` for a background retry. A save should never fail because the filesystem is unhappy.
+
+Dragging or resizing a card on the canvas skips the mirror write entirely — position, size, and z-index are pure UI arrangement, not content, so moving a card around never touches its file.
+
+On the Cloudflare Workers demo the mirror is off; it's a read-only environment anyway.
+
+## Rebuilding from the mirror
+
+Because the frontmatter is complete — id, day, author, workspace, even workspace color/icon — the mirror directory is a real backup, not just a convenience copy. Running:
+
+```sh
+npm run rebuild
+```
+
+reads every `.md` file under the storage backend's `workspaces/` prefix and restores any log missing from the database: recreating users (as disabled placeholder accounts, since passwords aren't in the mirror) and workspaces on demand from the frontmatter, and skipping any log ID that already exists. Point it at an empty database and a directory of `.md` files, and you get your data back.
