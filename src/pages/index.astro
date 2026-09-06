@@ -1,0 +1,87 @@
+---
+import DocsLayout from "../layouts/DocsLayout.astro";
+import { LinkButton } from "../components/ui/link-button";
+import { Card } from "../components/ui/card";
+import { CardGrid } from "../components/ui/card-grid";
+import { Aside } from "../components/ui/aside";
+import { Code } from "../components/ui/code";
+import { getSidebar } from "@cloudflare/nimbus-docs";
+import { config } from "virtual:nimbus/config";
+
+const sidebar = await getSidebar("/", { collection: "docs" });
+
+const quickstart = `docker run -d \\
+  --name loggo \\
+  -p 3000:3000 \\
+  -v loggo_data:/app/data \\
+  ghcr.io/loggo-dev/loggo:latest`;
+---
+
+<DocsLayout title={config.title} description={config.description} sidebar={sidebar} headings={[]} breadcrumbs={[]}>
+  <Fragment slot="pagination" />
+  <Fragment slot="page-title">
+    <div class="py-4 sm:py-8">
+      <div class="relative size-14 shrink-0 overflow-hidden">
+        <img
+          src={`${import.meta.env.BASE_URL}logo.png`}
+          alt=""
+          width="56"
+          height="56"
+          class="absolute inset-0 size-full object-contain"
+        />
+      </div>
+      <h1
+        class="mt-5 text-foreground leading-tight [text-wrap:balance]"
+        style="font-size: clamp(2.25rem, 4vw, 2.75rem); font-weight: var(--nb-h1-weight); letter-spacing: var(--nb-h1-tracking);"
+      >
+        Self-hosted note app for engineers
+      </h1>
+      <p class="mt-3 max-w-xl text-[1.0625rem] text-muted-foreground leading-relaxed [text-wrap:pretty]">
+        A day is a board; you drop Logs onto it all day. Organize your thoughts,
+        tasks, and snippets with local-first speed and total data ownership.
+      </p>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <LinkButton href="/deployment/docker" variant="primary" size="lg" icon>
+          Get started
+        </LinkButton>
+        <LinkButton
+          href="https://github.com/loggo-dev/loggo"
+          variant="outline"
+          size="lg"
+          target="_blank"
+          rel="noopener"
+        >
+          View on GitHub
+        </LinkButton>
+      </div>
+    </div>
+  </Fragment>
+
+  <h2>Quickstart</h2>
+  <p>Run Loggo locally using Docker:</p>
+  <Code code={quickstart} lang="sh" meta='title="Terminal"' />
+  <p>Open <a href="http://localhost:3000">localhost:3000</a> and create your first workspace.</p>
+
+  <Aside type="tip" title="Deploying for real?">
+    See <a href="/deployment/docker">Deploy with Docker</a> for persistent volume setup
+    and environment variable configuration.
+  </Aside>
+
+  <h2>What you get</h2>
+  <CardGrid>
+    <Card title="Infinite Canvas" icon="ph:squares-four">
+      Your day is a limitless 2D board. Drag and drop logs anywhere, resize them,
+      and tidy up with a click.
+    </Card>
+    <Card title="Plain Markdown" icon="ph:file-text">
+      Logs are saved as plain Markdown files with YAML frontmatter to a mirrored directory. You own your data.
+    </Card>
+    <Card title="Instant Search" icon="ph:magnifying-glass">
+      Full-text SQLite search powered by FTS5 means finding that one snippet takes milliseconds.
+    </Card>
+    <Card title="Multi-workspace" icon="ph:briefcase">
+      Keep your personal journal separate from your work notes. Collaborate with others
+      in shared workspaces.
+    </Card>
+  </CardGrid>
+</DocsLayout>

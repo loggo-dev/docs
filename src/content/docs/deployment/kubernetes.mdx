@@ -1,0 +1,92 @@
+---
+title: Deploy on Kubernetes
+description: Example manifests for running Loggo in a Kubernetes cluster.
+sidebar:
+  label: Kubernetes
+  order: 3
+---
+
+There's no packaged Helm chart yet, but Loggo drops right into a cluster with a `StatefulSet` or `Deployment` paired with a PersistentVolumeClaim. The manifests below are a starting point — adapt names, namespace, and resource limits to your cluster.
+
+<Steps>
+  <Step title="Create a PersistentVolumeClaim">
+    Holds your SQLite database and markdown mirror files.
+  </Step>
+  <Step title="Apply the Deployment and Service">
+    `kubectl apply -f` the manifests below.
+  </Step>
+  <Step title="Expose the Service">
+    Point your cluster's Ingress, Gateway, or LoadBalancer at it.
+  </Step>
+</Steps>
+
+<Aside type="caution" title="Single replica required">
+  Because Loggo uses a local SQLite database, it must be run with `replicas: 1`. Scaling beyond a single replica will cause data corruption or inconsistencies as pods fight over the local SQLite file.
+</Aside>
+
+## PersistentVolumeClaim
+
+```yaml title="loggo-pvc.yaml"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loggo-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+## Deployment
+
+```yaml title="loggo-deployment.yaml"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loggo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loggo
+  template:
+    metadata:
+      labels:
+        app: loggo
+    spec:
+      containers:
+        - name: loggo
+          image: ghcr.io/loggo-dev/loggo:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: loggo-data
+              mountPath: /app/data
+      volumes:
+        - name: loggo-data
+          persistentVolumeClaim:
+            claimName: loggo-data
+```
+
+## Service
+
+```yaml title="loggo-service.yaml"
+apiVersion: v1
+kind: Service
+metadata:
+  name: loggo
+spec:
+  selector:
+    app: loggo
+  ports:
+    - port: 80
+      targetPort: 3000
+```
+
+## Apply
+
+```sh
+kubectl apply -f loggo-pvc.yaml -f loggo-deployment.yaml -f loggo-service.yaml
+```

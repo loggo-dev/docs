@@ -1,0 +1,60 @@
+---
+title: Deploy with Docker
+description: Run Loggo using the official Docker image.
+sidebar:
+  label: Docker
+  order: 1
+  badge:
+    text: Start here
+---
+
+Docker is the primary and recommended way to run Loggo. The official image is lightweight and comes with everything you need.
+
+<Steps>
+  <Step title="Create a volume">
+    Loggo needs a persistent directory to store your SQLite database and mirrored Markdown files.
+  </Step>
+  <Step title="Run the container">
+    Pass the volume to the container via the `-v` flag.
+  </Step>
+  <Step title="Open the app">
+    Navigate to your server's IP or `localhost:3000` to set up your owner account.
+  </Step>
+</Steps>
+
+## Prerequisites
+
+- A server with Docker installed
+- A directory to mount as your data volume
+
+## Docker Run
+
+```sh title="Terminal"
+docker run -d \
+  --name loggo \
+  -p 3000:3000 \
+  -v /path/to/your/data:/app/data \
+  ghcr.io/loggo-dev/loggo:latest
+```
+
+<Aside type="tip" title="Data persistence">
+  Make sure you map a volume to `/app/data`. Loggo writes its SQLite database, user settings, and markdown files there. If you don't mount a volume, all your notes will be lost when the container stops!
+</Aside>
+
+## Docker Compose
+
+If you prefer `docker-compose.yml`:
+
+```yaml title="docker-compose.yml"
+version: '3.8'
+
+services:
+  loggo:
+    image: ghcr.io/loggo-dev/loggo:latest
+    container_name: loggo
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./loggo_data:/app/data
+```

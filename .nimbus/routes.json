@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "base": "/",
+  "knownRoutes": [
+    "/",
+    "/404",
+    "/api/logs",
+    "/api/overview",
+    "/deployment",
+    "/deployment/cloudflare",
+    "/deployment/docker",
+    "/deployment/kubernetes",
+    "/features",
+    "/features/canvas-and-masonry"
+  ],
+  "opaqueNamespaces": []
+}

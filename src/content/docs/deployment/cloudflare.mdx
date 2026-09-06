@@ -1,0 +1,66 @@
+---
+title: Deploy to Cloudflare
+description: Run Loggo as a read-only demo on Cloudflare Workers.
+sidebar:
+  label: Cloudflare
+  order: 2
+---
+
+Loggo can run as a Cloudflare Worker for a fast, read-only demo using D1. This path doesn't use Docker at all — you're deploying from a checkout of the app's source.
+
+<Steps>
+  <Step title="Create a D1 database">
+    In the Cloudflare dashboard, under **D1 SQL Database**.
+  </Step>
+  <Step title="Set the binding in wrangler.jsonc">
+    Point `d1_databases` at the database, and set `READ_ONLY=true`.
+  </Step>
+  <Step title="Build and deploy">
+    Run the deployment script to push the Worker.
+  </Step>
+</Steps>
+
+<Aside type="note" title="Read-only mode only">
+  Because the Cloudflare Workers environment uses an asynchronous D1 database and lacks a local filesystem, it is currently supported as a **read-only demo environment**. All data mutations will be rejected by the middleware.
+</Aside>
+
+## Prerequisites
+
+- A Cloudflare account, with [Wrangler](https://developers.cloudflare.com/workers/wrangler/) installed and authenticated (`wrangler login`)
+- A clone of the [Loggo repo](https://github.com/loggo-dev/loggo)
+
+## Configure `wrangler.jsonc`
+
+Set up your `wrangler.jsonc` to point to your D1 database binding. 
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "loggo-demo",
+  "compatibility_date": "2024-12-30",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "loggo-db",
+      "database_id": "<YOUR_D1_ID>"
+    }
+  ]
+}
+```
+
+<Steps>
+  <Step title="Create a D1 database">
+    In the Cloudflare dashboard or via Wrangler, create a database and use its ID above.
+  </Step>
+  <Step title="Pick a Worker name">
+    Set `name` to whatever you want the Worker (and its default `*.workers.dev` URL) to be called.
+  </Step>
+</Steps>
+
+## Build and deploy
+
+Install dependencies and run the build command.
+
+```sh
+pnpm install
+npm run deploy:cloudflare
+```

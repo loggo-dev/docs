@@ -1,0 +1,97 @@
+---
+title: Logs
+description: List, create, edit, and move logs on the daily board.
+sidebar:
+  order: 2
+---
+
+See [Canvas and Masonry](/features/canvas-and-masonry) for how logs are arranged on a board.
+
+## `GET /api/workspaces/:workspaceId/logs`
+
+<Badge text="GET" variant="info" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Fetches a paginated list of logs for a workspace.
+
+**Query Parameters**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `day` | string | No | Filter by a specific day (YYYY-MM-DD) |
+| `from` | string | No | Filter logs created after this date |
+| `to` | string | No | Filter logs created before this date |
+| `tag` | string | No | Filter by tag name |
+| `page` | string | No | Page number for pagination |
+
+**Response**
+
+```json
+{
+  "logs": [
+    { "id": "01HXYZ...", "day": "2026-09-06", "title": "Meeting notes", "body": "...", "createdAt": "...", "updatedAt": "..." }
+  ],
+  "hasMore": false,
+  "page": 1,
+  "limit": 50
+}
+```
+
+## `POST /api/workspaces/:workspaceId/logs`
+
+<Badge text="POST" variant="success" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Creates a new log on a specific day.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `day` | string | Yes | The date to attach the log to (YYYY-MM-DD) |
+| `body` | string | Yes | Markdown content of the log |
+| `title` | string | No | Optional title |
+| `posX` | number | No | Canvas X coordinate |
+| `posY` | number | No | Canvas Y coordinate |
+| `width` | number | No | Canvas width |
+| `height` | number | No | Canvas height |
+| `zIndex` | number | No | Canvas Z-index |
+
+**Response:** `200` with `{ "log": LogSummary }`
+
+## `PUT /api/workspaces/:workspaceId/logs/:logId`
+
+<Badge text="PUT" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Updates a log's content.
+
+**Request body** — all fields optional:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `title` | string | |
+| `body` | string | |
+
+**Response:** `{ "log": LogSummary }`
+
+## `PATCH /api/workspaces/:workspaceId/logs/:logId/position`
+
+<Badge text="PATCH" variant="warning" size="medium" /> <Badge text="Workspace Member" variant="default" size="medium" />
+
+Updates the spatial position of a log on the infinite canvas.
+
+**Request body**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `posX` | number | Yes | |
+| `posY` | number | Yes | |
+| `zIndex` | number | No | |
+
+**Response:** `{ "ok": true }`
+
+## `DELETE /api/workspaces/:workspaceId/logs/:logId`
+
+<Badge text="DELETE" variant="danger" size="medium" /> <Badge text="Workspace Member" variant="danger" size="medium" />
+
+Soft-deletes a log (sets `deleted_at`).
+
+**Response:** `{ "ok": true }`
