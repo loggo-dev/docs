@@ -7,7 +7,7 @@ const nimbusConfig = defineNimbusConfig({
   // Canonical origin — drives canonical URLs, absolute OG image URLs,
   // robots.txt, sitemap, and the links in /llms.txt.
   site: "https://docs.loggo.dev",
-  title: "Loggo",
+  title: "Loggo Documentation",
   description: "Documentation for Loggo, a self-hosted note app for engineers.",
   locale: "en",
   github: "https://github.com/loggo-dev/loggo",
