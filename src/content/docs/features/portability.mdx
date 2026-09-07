@@ -5,6 +5,20 @@ sidebar:
   order: 10
 ---
 
+<Steps>
+  <Step title="Every save writes to SQLite first">
+    Inside a transaction — that commit is what makes the save real.
+  </Step>
+  <Step title="Then mirrors to a .md file">
+    A plain markdown file with full YAML frontmatter, written next to
+    the database.
+  </Step>
+  <Step title="Rebuild from it any time">
+    `npm run rebuild` restores anything missing from the database,
+    straight from the mirror.
+  </Step>
+</Steps>
+
 SQLite is where Loggo actually reads and writes from, but it isn't the only copy of your data. Every Log is also mirrored to disk as a plain `.md` file with full YAML frontmatter:
 
 ```

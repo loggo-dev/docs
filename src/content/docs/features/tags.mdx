@@ -1,11 +1,24 @@
 ---
 title: Tags
-description: Inline #tags, parsed automatically from a Log's body.
+description: "Inline #tags, parsed automatically from a Log's body."
 sidebar:
   order: 3
 ---
 
-Write `#postgres` anywhere in a Log's body and it becomes a real tag — no separate tagging step. Nested tags like `#infra/postgres` are allowed too.
+<Steps>
+  <Step title="Write a #tag">
+    Anywhere in a Log's body — `#postgres`, or nested like
+    `#infra/postgres` — no separate tagging step.
+  </Step>
+  <Step title="Code and colors are skipped">
+    Fenced/inline code and hex colors like `#fff` are never parsed as
+    tags.
+  </Step>
+  <Step title="Browse them on /tags">
+    Every tag in the workspace, sorted by count — click one to see every
+    Log tagged with it.
+  </Step>
+</Steps>
 
 ## What doesn't count as a tag
 

@@ -5,7 +5,20 @@ sidebar:
   order: 5
 ---
 
-Paste an image into the [editor](/features/markdown-editor) or upload one through the API and it's stored next to that day's markdown mirror, then referenced from the log body as a relative link: `![screenshot](./_files/01JB...-screenshot.png)`.
+<Steps>
+  <Step title="Paste or upload">
+    Paste an image into the [editor](/features/markdown-editor), or
+    upload one through the API.
+  </Step>
+  <Step title="It's stored next to the mirror">
+    Locally, on S3, or on R2 — depending on how the instance is
+    configured.
+  </Step>
+  <Step title="Referenced from the Log">
+    A relative link is inserted automatically:
+    `![screenshot](./_files/01JB...-screenshot.png)`.
+  </Step>
+</Steps>
 
 ## Storage backends
 

@@ -1,12 +1,32 @@
 ---
 title: Deployment
-description: Deployment guides for Loggo
+description: Ways to run Loggo — Docker, Cloudflare, or Kubernetes.
 sidebar:
   order: 1
 ---
 
-Loggo is easy to self-host and runs almost anywhere that supports Node.js or Docker.
+Loggo is easy to self-host and runs almost anywhere that supports Node.js or Docker. Because it relies on SQLite for full-text search and metadata, it needs a persistent filesystem — every option below gives it one.
 
-Because it relies on SQLite for full-text search and metadata, it requires a persistent filesystem block.
+<CardGrid>
+  <Card title="Docker" icon="ph:cube">
+    A `docker run` or Compose file — the fastest way to try Loggo or run it on a single machine. See [Docker](/deployment/docker).
+  </Card>
+  <Card title="Cloudflare" icon="ph:cloud">
+    A read-only demo as a Cloudflare Worker, backed by D1. See [Cloudflare](/deployment/cloudflare).
+  </Card>
+  <Card title="Kubernetes" icon="ph:stack">
+    Example manifests for running Loggo in a cluster. See [Kubernetes](/deployment/kubernetes).
+  </Card>
+</CardGrid>
 
-- [Deploy with Docker](/deployment/docker)
+## Which one should I use?
+
+| Platform | Good for | Storage |
+| --- | --- | --- |
+| [Docker](/deployment/docker) | Self-hosting on your own server, full read/write | Local filesystem |
+| [Cloudflare](/deployment/cloudflare) | A fast, read-only demo with no server to maintain | D1 (SQLite) + R2 for attachments |
+| [Kubernetes](/deployment/kubernetes) | Running alongside other self-hosted services in a cluster | A single-replica PersistentVolumeClaim |
+
+<Aside type="caution" title="SQLite needs a single writer">
+  Loggo's database is local SQLite, so every deployment path above runs a single instance — `replicas: 1` on Kubernetes, one container elsewhere. The Cloudflare Worker path is the exception: it's read-only by design, so D1's distributed nature doesn't run into this.
+</Aside>

@@ -1,32 +1,41 @@
 ---
 title: Features
-description: Core features of Loggo
+description: What Loggo does — a day-per-board canvas, plain markdown mirroring, full-text search, tags, tasks, and more.
 sidebar:
   order: 0
 ---
 
-Loggo is a highly specialized self-hosted note app tailored for engineers and thinkers.
+Loggo is a self-hosted note app for engineers: every day is its own board, every Log is plain markdown mirrored to disk, and finding anything you wrote is a `Cmd+K` away.
 
-## A Day is a Board
-
-Instead of endless scrolling feeds or nested folder structures, Loggo organizes your life by day. Every day gives you a fresh, infinite 2D canvas. You drop "Logs" onto it anywhere you want. See [Canvas and Masonry](/features/canvas-and-masonry) for the two ways to view a day.
-
-## Plain Markdown with Frontmatter
-
-Every Log you create is seamlessly mirrored to the filesystem as a standard `.md` file, complete with YAML frontmatter. This guarantees your data is always portable, readable, and under your absolute control. See [Portability and Rebuild](/features/portability) for how that mirror doubles as a real backup.
-
-## Blazing Fast FTS5
-
-Loggo embeds a SQLite database leveraging FTS5 and the `unicode61` tokenizer. Finding a single keyword across thousands of your historical logs takes just milliseconds. See [Search](/features/search) for the Cmd+K palette this powers.
-
-## Everything else
-
-| Feature | What it does |
-| --- | --- |
-| [Markdown Editor](/features/markdown-editor) | CodeMirror 6 with Obsidian-style live preview, syntax-highlighted code blocks, paste-to-upload images |
-| [Tags](/features/tags) | Inline `#tag` (and `#nested/tag`) parsed out of a Log's body automatically |
-| [Tasks](/features/tasks) | `- [ ]` checkboxes parsed into real records, with `!friday`-style due dates |
-| [Attachments](/features/attachments) | Images and files attached to a Log, stored locally, on S3, or on R2 |
-| [Workspaces](/features/workspaces) | A private Personal space plus shared team workspaces, each with its own color and icon |
-| [Daily Templates](/features/templates) | Logs a workspace generates automatically for today, or for any day you open |
-| [Admin](/features/admin) | Managing users, workspaces, and instance-wide settings |
+<CardGrid>
+  <Card title="Canvas and Masonry" icon="ph:squares-four">
+    An infinite 2D canvas for the day's Logs, or a structured grid — switch views any time. See [Canvas and Masonry](/features/canvas-and-masonry).
+  </Card>
+  <Card title="Markdown Editor" icon="ph:text-aa">
+    CodeMirror 6 with Obsidian-style live preview, syntax-highlighted code, and paste-to-upload images. See [Markdown Editor](/features/markdown-editor).
+  </Card>
+  <Card title="Tags" icon="ph:tag">
+    Inline `#tag` (and `#nested/tag`) parsed out of a Log's body automatically. See [Tags](/features/tags).
+  </Card>
+  <Card title="Tasks" icon="ph:check-square">
+    `- [ ]` checkboxes parsed into real records, with `!friday`-style due dates. See [Tasks](/features/tasks).
+  </Card>
+  <Card title="Attachments" icon="ph:paperclip">
+    Images and files attached to a Log, stored locally, on S3, or on R2. See [Attachments](/features/attachments).
+  </Card>
+  <Card title="Search" icon="ph:magnifying-glass">
+    A `Cmd+K` palette over a SQLite FTS5 index — milliseconds across years of Logs. See [Search](/features/search).
+  </Card>
+  <Card title="Workspaces" icon="ph:buildings">
+    A private Personal space plus shared team workspaces, each with its own color and icon. See [Workspaces](/features/workspaces).
+  </Card>
+  <Card title="Daily Templates" icon="ph:repeat">
+    Logs a workspace generates automatically for today, or for any day you open. See [Daily Templates](/features/templates).
+  </Card>
+  <Card title="Admin" icon="ph:shield-check">
+    Managing users, workspaces, and instance-wide settings. See [Admin](/features/admin).
+  </Card>
+  <Card title="Portability and Rebuild" icon="ph:arrows-clockwise">
+    Every Log mirrors to a plain `.md` file — a real backup you can rebuild the database from. See [Portability and Rebuild](/features/portability).
+  </Card>
+</CardGrid>

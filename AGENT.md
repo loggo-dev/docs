@@ -49,6 +49,8 @@ Content here. The page H1 comes from `title` — don't repeat it in the body.
 Rules:
 
 - **Components must be PascalCase and registered in `src/components.ts`.** A pre-build validator catches typos with a "did you mean" hint.
+- **Every `docs/` guide page (feature or deployment) opens with a `<Steps>` block, right after frontmatter, no lead-in prose.** 3 short steps summarizing the page's core flow — not necessarily literal setup instructions; a feature page's steps can be "the 3 things you'd typically do with it". Detailed `##` sections follow below it, and can repeat/expand on the same ground. See any `src/content/docs/features/*.mdx` or `src/content/docs/deployment/*.mdx` for the pattern. Don't hand-roll a `1. 2. 3.` markdown list instead. Reference-only content (`src/content/api/*.mdx`) skips this — it's not a walkthrough.
+- **Every section index page (`docs/features/index.mdx`, `docs/deployment/index.mdx`, ...) uses `<CardGrid>` of `<Card title="..." icon="ph:...">`, one per page in that section, each linking to it.** Not a bullet list or table — see either index page for the pattern.
 - **Partials use `<Render file="..." />`.** Don't import `.mdx` directly. Shared content lives in `src/content/partials/<slug>.mdx`.
 - **Icons use `astro-icon` + Phosphor.** `<Icon name="ph:<glyph>" class="w-4 h-4" />` from `astro-icon/components`. Glyphs: [phosphoricons.com](https://phosphoricons.com).
 - **Don't remove `<AgentDirective />` from `BaseLayout.astro`.** It points agents at `/llms.txt`.
