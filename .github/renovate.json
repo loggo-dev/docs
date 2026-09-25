@@ -16,6 +16,12 @@
   },
   "packageRules": [
     {
+      "description": "Automerge minor and patch updates. 0.x versions are excluded because their minor bumps can break.",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
       "description": "Astro and its official integrations move together",
       "groupName": "astro",
       "matchPackageNames": ["astro", "@astrojs/**"]
