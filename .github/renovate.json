@@ -1,0 +1,47 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    ":dependencyDashboard"
+  ],
+  "timezone": "UTC",
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "3 days",
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Astro and its official integrations move together",
+      "groupName": "astro",
+      "matchPackageNames": ["astro", "@astrojs/**"]
+    },
+    {
+      "groupName": "nimbus-docs",
+      "matchPackageNames": ["@cloudflare/nimbus-docs", "astro-og-canvas", "canvaskit-wasm", "pagefind"]
+    },
+    {
+      "groupName": "tailwindcss",
+      "matchPackageNames": ["tailwindcss", "@tailwindcss/**", "tailwind-merge"]
+    },
+    {
+      "groupName": "fonts",
+      "matchPackageNames": ["@fontsource-variable/**"]
+    },
+    {
+      "description": "Group all GitHub Actions updates",
+      "groupName": "github actions",
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "description": "Keep the deploy workflow on Node 22, same as the app. Move to a new Node major by hand.",
+      "matchDatasources": ["node-version"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}
